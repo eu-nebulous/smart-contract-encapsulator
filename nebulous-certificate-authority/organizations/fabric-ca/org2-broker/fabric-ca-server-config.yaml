@@ -1,0 +1,115 @@
+version: v1.5.15
+
+port: 7059
+cors:
+  enabled: false
+  origins: ["*"]
+
+debug: false
+crlsizelimit: 512000
+
+tls:
+  enabled: true
+  certfile: tls-cert.pem
+  keyfile: tls-key.pem
+  clientauth:
+    type: noclientcert
+    certfiles: []
+
+ca:
+  name: ca-org2-broker
+  keyfile: ca-key.pem
+  certfile: ca-cert.pem
+  chainfile:
+  reenrollIgnoreCertExpiry: false
+
+crl:
+  expiry: 24h
+
+registry:
+  maxenrollments: -1
+  identities: []
+
+db:
+  type: postgres
+  datasource: host=postgres-ca port=5432 user=fabricca dbname=ca_org2 sslmode=disable
+  tls:
+    enabled: false
+    certfiles: []
+    client:
+      certfile:
+      keyfile:
+
+ldap:
+  enabled: false
+
+affiliations:
+  org2:
+    - department1
+
+signing:
+  default:
+    usage:
+      - digital signature
+    expiry: 8760h
+  profiles:
+    ca:
+      usage:
+        - cert sign
+        - crl sign
+      expiry: 43800h
+      caconstraint:
+        isca: true
+        maxpathlen: 0
+    tls:
+      usage:
+        - signing
+        - key encipherment
+        - server auth
+        - client auth
+        - key agreement
+      expiry: 8760h
+
+csr:
+  cn: ca-org2-broker
+  keyrequest:
+    algo: ecdsa
+    size: 256
+  names:
+    - C: "US"
+      ST: "State"
+      L: "City"
+      O: "MyOrg"
+      OU: "Org2 Broker"
+  hosts:
+    - ca-org2-broker
+    - localhost
+  ca:
+    expiry: 131400h
+    pathlength: 1
+
+idemix:
+  rhpoolsize: 1000
+  nonceexpiration: 15s
+  noncesweepinterval: 15m
+  curve: amcl.Fp256bn
+
+bccsp:
+  default: SW
+  sw:
+    hash: SHA2
+    security: 256
+    filekeystore:
+      keystore: msp/keystore
+
+cfg:
+  identities:
+    passwordattempts: 10
+
+operations:
+  listenAddress: 127.0.0.1:9443
+  tls:
+    enabled: false
+
+metrics:
+  provider: prometheus

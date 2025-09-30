@@ -1,0 +1,13 @@
+# Maven build output
+target/
+
+# the sensitive wallet and connection file
+wallet/
+
+# VCS / IDE / OS cruft
+.git/
+.idea/
+*.iml
+.vscode/
+*.log
+.DS_Store

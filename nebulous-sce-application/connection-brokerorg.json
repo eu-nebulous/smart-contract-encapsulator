@@ -1,0 +1,53 @@
+{
+    "name": "nebulous-sce-app-broker",
+    "version": "1.0.0",
+    "client": {
+        "organization": "BrokerOrgMSP",
+        "connection": {
+            "timeout": {
+                "peer": {
+                    "endorser": "300"
+                }
+            }
+        }
+    },
+    "organizations": {
+        "BrokerOrgMSP": {
+            "mspid": "BrokerOrgMSP",
+            "peers": [
+                "peer0.brokerorg.neb.com"
+            ],
+            "certificateAuthorities": {
+                "ca.brokerorg.neb.com": {
+                    "url": "https://ca.brokerorg.neb.com:7059",
+                    "caName": "ca-brokerorg",
+                    "tlsCACerts": {
+                        "path": "wallet/certs/tlsca.brokerorg.neb.com-cert.pem"
+                    }
+                }
+            }
+        }
+    },
+    "peers": {
+        "peer0.brokerorg.neb.com": {
+            "url": "grpcs://peer0.brokerorg.neb.com:7051",
+            "tlsCACerts": {
+                "path": "wallet/certs/peer0.brokerorg.tls.ca.crt"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "peer0.brokerorg.neb.com"
+            }
+        }
+    },
+    "orderers": {
+        "orderer.neb.com": {
+            "url": "grpcs://orderer.neb.com:7050",
+            "tlsCACerts": {
+                "path": "wallet/certs/orderer.tls.ca.crt"
+            },
+            "grpcOptions": {
+                "ssl-target-name-override": "orderer.neb.com"
+            }
+        }
+    }
+}

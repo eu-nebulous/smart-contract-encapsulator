@@ -1,0 +1,128 @@
+version: v1.5.15
+port: 7057  # Changed port for resource provider CA
+cors:
+  enabled: false
+  origins: ["*"]
+debug: false
+crlsizelimit: 512000
+
+tls:
+  enabled: true
+  certfile: tls-cert.pem  # Ensure this certificate and the keyfile exist for this CA
+  keyfile: tls-key.pem
+  clientauth:
+    type: noclientcert
+    certfiles: []
+
+ca:
+  name: ca-org1-resourceprovider  # Critical: Unique CA name for this server
+  keyfile: ca-key.pem
+  certfile: ca-cert.pem
+  chainfile:
+  reenrollIgnoreCertExpiry: false
+
+crl:
+  expiry: 24h
+
+registry:
+  maxenrollments: -1
+  identities: []  # Bootstrap admin identity should be defined here for initial setup
+
+db:
+  type: postgres
+  datasource: host=postgres-ca port=5432 user=fabricca dbname=ca_org1 sslmode=disable  # Critical: Point to the correct database (ca_org1)
+  tls:
+    enabled: false
+    certfiles: []
+    client:
+      certfile:
+      keyfile:
+
+ldap:
+  enabled: false
+
+affiliations:
+  org1:
+    - department1
+    - department2
+  org2:
+    - department1
+
+signing:
+  default:
+    usage:
+      - digital signature
+    expiry: 8760h
+  profiles:
+    ca:
+      usage:
+        - cert sign
+        - crl sign
+      expiry: 43800h
+      caconstraint:
+        isca: true
+        maxpathlen: 0
+    tls:
+      usage:
+        - signing
+        - key encipherment
+        - server auth
+        - client auth
+        - key agreement
+      expiry: 8760h
+
+csr:
+  cn: ca-org1-resourceprovider  # Should match the CA name or be specific to this node
+  keyrequest:
+    algo: ecdsa
+    size: 256
+  names:
+    - C: "US"
+      ST: "State"
+      L: "City"
+      O: "MyOrg"
+      OU: "Resource Provider CA"  # Updated organizational unit
+  hosts:
+    - ca-org1-resourceprovider  # Update with the correct hostnames for this server
+    - localhost
+  ca:
+    expiry: 131400h
+    pathlength: 1
+
+idemix:
+  rhpoolsize: 1000
+  nonceexpiration: 15s
+  noncesweepinterval: 15m
+  curve: amcl.Fp256bn
+
+bccsp:
+  default: SW
+  sw:
+    hash: SHA2
+    security: 256
+    filekeystore:
+      keystore: msp/keystore
+
+cfg:
+  identities:
+    passwordattempts: 10
+
+operations:
+  listenAddress: 127.0.0.1:9443
+  tls:
+    enabled: false
+    cert:
+      file:
+    key:
+      file:
+    clientAuthRequired: false
+    clientRootCAs:
+      files: []
+
+metrics:
+  provider: prometheus
+  statsd:
+    network: udp
+    address: 127.0.0.1:8125
+    writeInterval: 10s
+    prefix: server

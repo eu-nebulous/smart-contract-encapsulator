@@ -1,0 +1,8 @@
+# Dockerfile.client-simple
+FROM hyperledger/fabric-ca:1.5.15
+
+# Install curl for testing
+RUN apt-get update && apt-get install -y curl && apt-get clean
+
+WORKDIR /workspace/scripts
+CMD ["/bin/bash"]

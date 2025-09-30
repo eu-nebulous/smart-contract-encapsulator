@@ -1,0 +1,117 @@
+version: '3.8'
+
+networks:
+  neb-network:
+    name: neb-network
+    driver: bridge
+
+services:
+  orderer.neb.com:
+    container_name: orderer.neb.com
+    image: hyperledger/fabric-orderer:2.5
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - ORDERER_GENERAL_LISTENADDRESS=0.0.0.0
+      - ORDERER_GENERAL_GENESISMETHOD=file
+      - ORDERER_GENERAL_GENESISFILE=/var/hyperledger/orderer/orderer.genesis.block
+      - ORDERER_GENERAL_LOCALMSPID=OrdererOrgMSP
+      - ORDERER_GENERAL_LOCALMSPDIR=/var/hyperledger/orderer/msp
+      - ORDERER_GENERAL_TLS_ENABLED=true
+      - ORDERER_GENERAL_TLS_PRIVATEKEY=/var/hyperledger/orderer/tls/server.key
+      - ORDERER_GENERAL_TLS_CERTIFICATE=/var/hyperledger/orderer/tls/server.crt
+      - ORDERER_GENERAL_TLS_ROOTCAS=[/var/hyperledger/orderer/tls/ca.crt]
+    volumes:
+      - ./system-genesis-block/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+      - ../nebulous-certificate-authority/organizations/ordererOrganizations/neb.com/orderers/orderer.neb.com/msp:/var/hyperledger/orderer/msp
+      - ../nebulous-certificate-authority/organizations/ordererOrganizations/neb.com/orderers/orderer.neb.com/tls:/var/hyperledger/orderer/tls
+    ports:
+      - "7050:7050"
+    networks:
+      - neb-network
+
+  peer0.resourceproviderorg.neb.com:
+    container_name: peer0.resourceproviderorg.neb.com
+    image: hyperledger/fabric-peer:2.5
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.resourceproviderorg.neb.com
+      - CORE_PEER_ADDRESS=peer0.resourceproviderorg.neb.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_LOCALMSPID=ResourceProviderOrgMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.resourceproviderorg.neb.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.resourceproviderorg.neb.com:7051
+      - CORE_CHAINCODE_STARTUPTIMEOUT=60s
+
+      # CRITICAL: Network mode for chaincode containers
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=neb-network
+
+      # Chaincode TLS configuration
+      - CORE_CHAINCODE_TLS_ENABLED=true
+      - CORE_CHAINCODE_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_CHAINCODE_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_CHAINCODE_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+
+      # Additional Docker configuration
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_VM_DOCKER_ATTACHSTDERR=true
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ../nebulous-certificate-authority/organizations/peerOrganizations/resourceproviderorg.neb.com/peers/peer0.resourceproviderorg.neb.com/msp:/etc/hyperledger/fabric/msp
+      - ../nebulous-certificate-authority/organizations/peerOrganizations/resourceproviderorg.neb.com/peers/peer0.resourceproviderorg.neb.com/tls:/etc/hyperledger/fabric/tls
+      - ../nebulous-certificate-authority/organizations/peerOrganizations/resourceproviderorg.neb.com/tlsca/tlsca.resourceproviderorg.neb.com-cert.pem:/tls/peer-tlsca.pem
+
+    ports:
+      - "9051:7051"
+    networks:
+      - neb-network
+
+  peer0.brokerorg.neb.com:
+    container_name: peer0.brokerorg.neb.com
+    image: hyperledger/fabric-peer:2.5
+    environment:
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=peer0.brokerorg.neb.com
+      - CORE_PEER_ADDRESS=peer0.brokerorg.neb.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_LOCALMSPID=BrokerOrgMSP
+      - CORE_PEER_MSPCONFIGPATH=/etc/hyperledger/fabric/msp
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+      - CORE_VM_ENDPOINT=unix:///var/run/docker.sock
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.brokerorg.neb.com:7051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.brokerorg.neb.com:7051
+      - CORE_CHAINCODE_STARTUPTIMEOUT=60s
+
+      # CRITICAL: Network mode for chaincode containers
+      - CORE_VM_DOCKER_HOSTCONFIG_NETWORKMODE=neb-network
+
+      # Chaincode TLS configuration
+      - CORE_CHAINCODE_TLS_ENABLED=true
+      - CORE_CHAINCODE_TLS_CERT_FILE=/etc/hyperledger/fabric/tls/server.crt
+      - CORE_CHAINCODE_TLS_KEY_FILE=/etc/hyperledger/fabric/tls/server.key
+      - CORE_CHAINCODE_TLS_ROOTCERT_FILE=/etc/hyperledger/fabric/tls/ca.crt
+
+      # Additional Docker configuration
+      - CORE_VM_DOCKER_ATTACHSTDOUT=true
+      - CORE_VM_DOCKER_ATTACHSTDERR=true
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+      - ../nebulous-certificate-authority/organizations/peerOrganizations/brokerorg.neb.com/peers/peer0.brokerorg.neb.com/msp:/etc/hyperledger/fabric/msp
+      - ../nebulous-certificate-authority/organizations/peerOrganizations/brokerorg.neb.com/peers/peer0.brokerorg.neb.com/tls:/etc/hyperledger/fabric/tls
+      - ../nebulous-certificate-authority/organizations/peerOrganizations/brokerorg.neb.com/tlsca/tlsca.brokerorg.neb.com-cert.pem:/tls/peer-tlsca.pem
+
+    ports:
+      - "7051:7051"
+    networks:
+      - neb-network

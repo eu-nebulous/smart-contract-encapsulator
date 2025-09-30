@@ -1,0 +1,52 @@
+# ========================================================================================
+#   Orderer Organization
+# ========================================================================================
+OrdererOrgs:
+  - Name: OrdererOrg
+    Domain: neb.com
+    # EnableNodeOUs allows for OU-based role classification (e.g., admin, client, peer).
+    # This is a critical setting for modern Fabric networks.
+    EnableNodeOUs: true
+    Specs:
+      - Hostname: orderer
+        # Subject Alternative Names (SANs): a list of hostnames to which this
+        # TLS certificate is valid. 'localhost' is for access from scripts/clients
+        # on the host machine. 'orderer.neb.com' is for access between containers.
+        SANS:
+          - "localhost"
+          - "orderer.neb.com"
+
+# ========================================================================================
+#   Peer Organizations
+# ========================================================================================
+PeerOrgs:
+  - Name: ResourceProviderOrg
+    Domain: resourceproviderorg.neb.com
+    EnableNodeOUs: true
+    Template:
+      # How many peers to generate for this org.
+      Count: 1
+      SANS:
+        - "localhost"
+        - "peer0.resourceproviderorg.neb.com"
+    # The 'Users' section is commented out because cryptogen creates the necessary
+    # 'Admin' user by default. This keeps the configuration clean by not generating
+    # an unused 'User1' identity.
+    Users:
+      Count: 1
+
+  - Name: BrokerOrg
+    Domain: brokerorg.neb.com
+    EnableNodeOUs: true
+    Template:
+      Count: 1
+      SANS:
+        - "localhost"
+        - "peer0.brokerorg.neb.com"
+    Users:
+      Count: 1
+
+
+
+
+    

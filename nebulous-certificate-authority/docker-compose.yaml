@@ -1,0 +1,160 @@
+version: '3.8'
+
+networks:
+  fabric-ca:
+    driver: overlay
+    attachable: true
+
+secrets:
+  postgres_password:
+    external: true
+  ca_orderer_bootstrap_pw:
+    external: true
+  ca_org1_bootstrap_pw:
+    external: true
+  ca_org2_bootstrap_pw:
+    external: true
+
+services:
+  postgres-ca:
+    image: postgres:13
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    # read DB password from Docker secret and run official entrypoint
+    command: >
+      sh -c "export POSTGRES_PASSWORD=$$(cat /run/secrets/postgres_password) && exec docker-entrypoint.sh postgres"
+    environment:
+      POSTGRES_USER: fabricca
+      POSTGRES_DB: fabric_ca
+    secrets:
+      - postgres_password
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    networks:
+      - fabric-ca
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U fabricca -d fabric_ca || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 8
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ca-orderer:
+    image: hyperledger/fabric-ca:1.5.15
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    # Use entrypoint script (mounted below) which reads secrets and starts the server
+    command: [ "/usr/local/bin/entrypoint-fabric-ca.sh" ]
+    ports:
+      - "7055:7055"
+    environment:
+      FABRIC_CA_SERVER_CA_NAME: ca-orderer
+      FABRIC_CA_SERVER_TLS_ENABLED: "true"
+      FABRIC_CA_SERVER_PORT: "7055"
+      FABRIC_CA_SERVER_COMPATIBILITY_MODE_V1_3: "true"
+    secrets:
+      - ca_orderer_bootstrap_pw
+      - postgres_password
+    volumes:
+      - ./organizations/fabric-ca/ordererOrg:/etc/hyperledger/fabric-ca-server
+      - ./scripts/entrypoint-fabric-ca.sh:/usr/local/bin/entrypoint-fabric-ca.sh:ro
+    networks:
+      - fabric-ca
+    depends_on:
+      - postgres-ca
+    # Note: healthcheck uses curl; if missing adjust to a command available in the image.
+    healthcheck:
+      #test: ["CMD-SHELL", "curl -fsS -k https://127.0.0.1:7055/cainfo || exit 1"]
+      test: ["CMD-SHELL", "test -f /etc/hyperledger/fabric-ca-server/ca-cert.pem || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ca-org1-resourceprovider:
+    image: hyperledger/fabric-ca:1.5.15
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    command: [ "/usr/local/bin/entrypoint-fabric-ca.sh" ]
+    ports:
+      - "7057:7057"
+    environment:
+      FABRIC_CA_SERVER_CA_NAME: ca-org1-resourceprovider
+      FABRIC_CA_SERVER_TLS_ENABLED: "true"
+      FABRIC_CA_SERVER_CSR_CN: "ca-org1-resourceprovider"
+      FABRIC_CA_SERVER_PORT: "7057"
+    secrets:
+      - ca_org1_bootstrap_pw
+      - postgres_password
+    volumes:
+      - ./organizations/fabric-ca/org1-resourceprovider:/etc/hyperledger/fabric-ca-server
+      - ./scripts/entrypoint-fabric-ca.sh:/usr/local/bin/entrypoint-fabric-ca.sh:ro
+    networks:
+      - fabric-ca
+    depends_on:
+      - postgres-ca
+    healthcheck:
+      #test: ["CMD-SHELL", "curl -fsS -k https://127.0.0.1:7057/cainfo || exit 1"]
+      test: ["CMD-SHELL", "test -f /etc/hyperledger/fabric-ca-server/ca-cert.pem || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+  ca-org2-broker:
+    image: hyperledger/fabric-ca:1.5.15
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+    command: [ "/usr/local/bin/entrypoint-fabric-ca.sh" ]
+    ports:
+      - "7059:7059"
+    environment:
+      FABRIC_CA_SERVER_CA_NAME: ca-org2-broker
+      FABRIC_CA_SERVER_TLS_ENABLED: "true"
+      FABRIC_CA_SERVER_CSR_CN: "ca-org2-broker"
+      FABRIC_CA_SERVER_PORT: "7059"
+    secrets:
+      - ca_org2_bootstrap_pw
+      - postgres_password
+    volumes:
+      - ./organizations/fabric-ca/org2-broker:/etc/hyperledger/fabric-ca-server
+      - ./scripts/entrypoint-fabric-ca.sh:/usr/local/bin/entrypoint-fabric-ca.sh:ro
+    networks:
+      - fabric-ca
+    depends_on:
+      - postgres-ca
+    healthcheck:
+      #test: ["CMD-SHELL", "curl -fsS -k https://127.0.0.1:7057/cainfo || exit 1"]
+      test: ["CMD-SHELL", "test -f /etc/hyperledger/fabric-ca-server/ca-cert.pem || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  pgdata:
