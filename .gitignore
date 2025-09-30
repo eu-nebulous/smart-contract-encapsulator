@@ -1,0 +1,91 @@
+# Maven
+**/target/
+**/pom.xml.tag
+**/pom.xml.releaseBackup
+**/pom.xml.versionsBackup
+**/pom.xml.next
+**/release.properties
+**/dependency-reduced-pom.xml
+**/buildNumber.properties
+**/.mvn/timing.properties
+**/.mvn/wrapper/maven-wrapper.jar
+
+# IDE
+**/.idea/
+**/.vscode/
+**/*.iml
+**/*.iws
+**/*.ipr
+**/.classpath
+**/.project
+**/.settings/
+**/*.swp
+**/*.swo
+**/*~
+
+# VS Code Server
+.vscode-server/
+
+# OS
+.DS_Store
+Thumbs.db
+**/.DS_Store
+
+# User directories and caches
+.gitconfig
+
+
+# Private keys
+**/*_sk
+**/keystore/**
+
+# Fabric CA secret keys
+**/IssuerSecretKey
+**/IssuerRevocationPrivateKey
+
+# Fabric CA enrollment state
+**/.enrolled_ca_admin
+
+# Fabric CA Database
+**/fabric-ca-server.db
+**/ca-cert.pem
+
+# Channel Artifacts
+**/channel-artifacts/*.block
+**/channel-artifacts/*.tx
+**/system-genesis-block/*.block
+
+# Temporary files
+**/*.log
+
+# Docker volumes and data
+**/docker-volumes/
+**/data/
+
+# Compiled chaincode packages
+**/*.tar.gz
+
+# Fabric binaries 
+**/bin/
+
+# Test reports
+**/surefire-reports/
+**/test-output/
+
+# Build artifacts
+**/*.jar
+**/*.war
+**/*.ear
+**/*.class
+
+# Fabric-specific ignores
+**/admincerts/
+**/signcerts/
+**/cacerts/
+**/intermediatecerts/
+**/crls/
+**/config.yaml
+
+# Keep these exceptions
+!**/nebulous-smart-contract/target/chaincode.jar
+
