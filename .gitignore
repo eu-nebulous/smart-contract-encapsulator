@@ -34,10 +34,20 @@ Thumbs.db
 # User directories and caches
 .gitconfig
 
+# Database files
+**/*.db
 
 # Private keys
 **/*_sk
 **/keystore/**
+
+**/tls-cert.pem
+**/tls-key.pem
+**/server.crt
+**/server.key
+**/ca.crt
+**/cert.pem
+**/tlsca.*.pem
 
 # Fabric CA secret keys
 **/IssuerSecretKey
