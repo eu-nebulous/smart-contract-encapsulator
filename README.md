@@ -103,12 +103,12 @@ Place the certificates in the appropriate folders:
 - TLS CA certificates → wallet/certs/ (rename as needed for each peer/orderer, e.g., tlsca.<org>-cert.pem or peer0.<org>.tls.ca.crt)
 
 
-# Build the application
+## Build the application
 ```
 mvn clean package
 ```
 
-# Build Docker image
+## Build Docker image
 ```
 docker build -t nebulous-sce-application:latest .
 ```
@@ -125,7 +125,7 @@ docker run --rm --network host \
   --activemq-user admin \
   --activemq-password admin
 ```
-## Application Parameters
+### Application Parameters
 
 --activemq-host: ActiveMQ broker hostname
 
