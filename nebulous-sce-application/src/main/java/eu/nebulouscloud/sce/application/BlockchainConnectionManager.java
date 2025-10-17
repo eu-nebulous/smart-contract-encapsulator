@@ -67,7 +67,8 @@ public class BlockchainConnectionManager {
             keyPath = findPrivateKeyFile(Paths.get("wallet/user1@brokerorg.neb.com/msp/keystore"));
         }
 
-        Path tlsCertPath = Paths.get("wallet/certs/tlsca.brokerorg.neb.com-cert.pem");
+        Path tlsCertPath = Paths.get(System.getenv().getOrDefault("CA_CERT_PATH",
+                "wallet/certs/tlsca.brokerorg.neb.com-cert.pem"));
         Path connectionProfilePath = Paths.get(System.getenv().getOrDefault("APP_CONN_PROFILE",
                 "connection-brokerorg.json"));
 
