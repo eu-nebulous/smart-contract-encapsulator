@@ -1,6 +1,8 @@
 package eu.nebulouscloud.sce.application;
 
 import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
+
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -169,17 +171,18 @@ public class EventHandlerModule {
   public String MainFunction(String event_message) throws Exception {
     System.out.println("▶ MainFunction: Processing event.. ");
     final ObjectMapper objectMapper = new ObjectMapper();
-
+    String slaName = null;
+    String eventsJson = null;
     try {
 
       // String eventJsn = message.substring(6).trim();
-      String slaName = recordEvent(event_message);
+      slaName = recordEvent(event_message);
 
       // Get the complete event map for this SLA
       Map<String, Object> slaEvents = eventStore.get(slaName);
 
       // Convert the map to JSON string
-      String eventsJson = objectMapper.writeValueAsString(slaEvents);
+      eventsJson = objectMapper.writeValueAsString(slaEvents);
 
       System.out.println(eventsJson);
 
@@ -187,9 +190,36 @@ public class EventHandlerModule {
 
       return slaName;
 
-    } catch (Exception e) {
-      System.err.println("✗ ✗ JSON parsing failed: " + e.getMessage());
-      throw new Exception("Event processing failed - invalid JSON: " + e.getMessage());
+    }
+    catch (Exception e) {
+      System.err.println("✗ ✗ Event processing failed:");
+      System.err.println("   Exception Type: " + e.getClass().getName());
+      System.err.println("   Exception Message: " + e.getMessage());
+      System.err.println("   Input event_message: " + event_message);
+      System.err.println("   SLA Name: " + (slaName != null ? slaName : "not determined"));
+      System.err.println("   Generated eventsJson: " + (eventsJson != null ? eventsJson : "not generated"));
+      
+      // Log cause if available
+      if (e.getCause() != null) {
+        System.err.println("   Cause: " + e.getCause().getClass().getName() + ": " + e.getCause().getMessage());
+        if (e.getCause().getCause() != null) {
+          System.err.println("   Root Cause: " + e.getCause().getCause().getClass().getName() + ": " + e.getCause().getCause().getMessage());
+        }
+      }
+      
+      // For StatusRuntimeException, log additional details
+      if (e instanceof StatusRuntimeException) {
+        StatusRuntimeException sre = (StatusRuntimeException) e;
+        System.err.println("   gRPC Status Code: " + sre.getStatus().getCode());
+        System.err.println("   gRPC Status Description: " + sre.getStatus().getDescription());
+        System.err.println("   gRPC Status: " + sre.getStatus().toString());
+      }
+      
+      // Log full stack trace
+      System.err.println("   Full Stack Trace:");
+      e.printStackTrace();
+      
+      throw new Exception("Event processing failed - invalid JSON: " + e.getMessage(), e);
     }
   }
 
