@@ -13,6 +13,7 @@ import java.util.Map;
 import org.hyperledger.fabric.client.Gateway;
 import org.hyperledger.fabric.client.Network;
 import org.hyperledger.fabric.client.Contract;
+import org.hyperledger.fabric.client.EndorseException;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
@@ -207,6 +208,21 @@ public class EventHandlerModule {
         }
       }
       
+      // For EndorseException, log additional details
+      if (e instanceof EndorseException) {
+        EndorseException ee = (EndorseException) e;
+        System.err.println("   EndorseException Details:");
+        System.err.println("     Message: " + ee.getMessage());
+        // The actual chaincode error is typically in the cause chain
+        Throwable cause = ee.getCause();
+        int depth = 0;
+        while (cause != null && depth < 5) {
+          System.err.println("     Cause[" + depth + "]: " + cause.getClass().getSimpleName() + ": " + cause.getMessage());
+          cause = cause.getCause();
+          depth++;
+        }
+      }
+      
       // For StatusRuntimeException, log additional details
       if (e instanceof StatusRuntimeException) {
         StatusRuntimeException sre = (StatusRuntimeException) e;
@@ -219,7 +235,7 @@ public class EventHandlerModule {
       System.err.println("   Full Stack Trace:");
       e.printStackTrace();
       
-      throw new Exception("Event processing failed - invalid JSON: " + e.getMessage(), e);
+      throw new Exception("Event processing failed: " + e.getMessage(), e);
     }
   }
 
